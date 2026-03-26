@@ -24,7 +24,9 @@
     "paths": {
       "@/*": ["./*"],
       "@modules": ["src/modules"],
-      "@modules/*": ["src/modules/*"]
+      "@modules/*": ["src/modules/*"],
+      "@generated": ["generated/prisma"],
+      "@generated/*": ["generated/prisma/*"]
     }
   }
 }
