@@ -49,7 +49,7 @@ export class UsersPrismaRepositoryAdapter implements IUsersRepository {
     if (tokens.length >= 5) {
       await this.prisma.token.delete({
         where: {
-          token: tokens[0].token,
+          hashedRt: tokens[0].hashedRt,
         },
       });
     }
@@ -64,16 +64,16 @@ export class UsersPrismaRepositoryAdapter implements IUsersRepository {
     if (existing) {
       await this.prisma.token.update({
         where: {
-          token: existing.token,
+          hashedRt: existing.hashedRt,
         },
         data: {
-          token: hashedRt,
+          hashedRt,
         },
       });
     } else {
       await this.prisma.token.create({
         data: {
-          token: hashedRt,
+          hashedRt,
           userId,
           userAgent,
         },
@@ -95,7 +95,7 @@ export class UsersPrismaRepositoryAdapter implements IUsersRepository {
 
     await this.prisma.token.delete({
       where: {
-        token: token.token,
+        hashedRt: token.hashedRt,
       },
     });
   }
