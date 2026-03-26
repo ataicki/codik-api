@@ -14,9 +14,30 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(uuid())
-  email    String @unique
-  password String
+  id           String @id @default(uuid())
+  email        String @unique
+  firstName    String @map("first_name")
+  lastName     String @map("last_name")
+  age          Int
+  passwordHash String
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tokens Token[]
 
   @@map("users")
+}
+
+model Token {
+  id        String @id @default(uuid())
+  token     String @unique
+  userAgent String @map("user_agent")
+  userId    String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("tokens")
 }
