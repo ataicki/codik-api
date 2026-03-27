@@ -13,10 +13,78 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  STUDENT
+  PARENT
+  COURSE_CREATOR
+}
+
 model User {
-  id       String @id @default(uuid())
-  email    String @unique
-  password String
+  id           String @id @default(uuid())
+  email        String @unique
+  passwordHash String
+  role         Role   @default(STUDENT)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tokens        Token[]
+  student       Student?
+  parent        Parent?
+  courseCreator CourseCreator?
 
   @@map("users")
+}
+
+model Token {
+  id        String @id @default(uuid())
+  hashedRt  String @unique @map("hashed_rt")
+  userAgent String @map("user_agent")
+  userId    String @map("user_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("tokens")
+}
+
+model Student {
+  id       String  @id @default(uuid())
+  userId   String  @unique @map("user_id")
+  fullName String  @map("full_name")
+  age      Int
+  parentId String? @map("parent_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent Parent? @relation(fields: [parentId], references: [id])
+
+  @@map("students")
+}
+
+model Parent {
+  id       String @id @default(uuid())
+  userId   String @unique @map("user_id")
+  fullName String @map("full_name")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  children Student[]
+
+  @@map("parents")
+}
+
+model CourseCreator {
+  id       String @id @default(uuid())
+  userId   String @unique @map("user_id")
+  fullName String @map("full_name")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("cource_creators")
 }
