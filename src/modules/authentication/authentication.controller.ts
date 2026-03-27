@@ -23,6 +23,8 @@ import {
 import { Public } from '@modules/authentication/decorators/public.decorator';
 import { UserAgent } from '@modules/authentication/decorators/user-agent.decorator';
 import { Cookie } from '@modules/authentication/decorators/cookie.decorator';
+import { Roles } from '@modules/authentication/decorators/roles.decorator';
+import { Role } from '@generated/enums';
 
 @Controller('authentication')
 export class AuthenticationController {
@@ -85,6 +87,7 @@ export class AuthenticationController {
     return { success: true };
   }
 
+  // @Roles(Role.STUDENT, Role.COURSE_CREATOR)
   @UseGuards(AccessGuard)
   @Get('me')
   me(@CurrentUser() user: RefreshPayload) {

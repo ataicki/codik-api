@@ -12,6 +12,7 @@ import { SignInDto } from '@modules/authentication/dtos/sign-in.dto';
 import { EnvService } from '@/src/infra/env/env.service';
 import { AccessPayload, RefreshPayload } from '@modules/authentication/types';
 import { UserResponseDto } from '@modules/authentication/dtos/user-response.dto';
+import { User } from '@generated/client';
 
 @Injectable()
 export class AuthenticationService {
@@ -24,7 +25,7 @@ export class AuthenticationService {
   async signUp(signUpDto: SignUpDto, userAgent: string) {
     const user = await this.usersService.create(signUpDto);
 
-    return this.issueTokens(user.id, userAgent);
+    return this.issueTokens(user, userAgent);
   }
 
   async signIn(signInDto: SignInDto, userAgent: string) {
@@ -41,7 +42,7 @@ export class AuthenticationService {
       throw new UnauthorizedException();
     }
 
-    return this.issueTokens(user.id, userAgent);
+    return this.issueTokens(user, userAgent);
   }
 
   async getMe(userId: string) {
@@ -68,6 +69,11 @@ export class AuthenticationService {
   }
 
   async refresh(userId: string, refreshToken: string, userAgent: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new ForbiddenException();
+    }
+
     const token = await this.usersService.findToken(userId, userAgent);
     if (!token) {
       throw new ForbiddenException();
@@ -80,20 +86,20 @@ export class AuthenticationService {
 
     await this.usersService.deleteToken(userId, userAgent);
 
-    return this.issueTokens(userId, userAgent);
+    return this.issueTokens(user, userAgent);
   }
 
-  async issueTokens(userId: string, userAgent: string) {
-    const accessPayload: AccessPayload = { sub: userId };
+  async issueTokens(user: User, userAgent: string) {
+    const accessPayload: AccessPayload = { sub: user.id, role: user.role };
     const accessToken = await this.jwtService.signAsync(accessPayload);
 
-    const refreshPayload: RefreshPayload = { userId };
+    const refreshPayload: RefreshPayload = { userId: user.id };
     const refreshToken = await this.jwtService.signAsync(refreshPayload, {
       secret: this.envService.get('REFRESH_SECRET'),
       expiresIn: `${this.envService.get('REFRESH_EXP')}d`,
     } as JwtSignOptions);
 
-    await this.usersService.upsertToken(userId, refreshToken, userAgent);
+    await this.usersService.upsertToken(user.id, refreshToken, userAgent);
 
     return {
       accessToken,

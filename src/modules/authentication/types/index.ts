@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
-import { User } from '@generated/client';
+import { Role, User } from '@generated/client';
 
 export interface AccessPayload {
   sub: string;
+  role: Role;
 }
+
 export interface RefreshPayload {
   userId: string;
 }

@@ -11,6 +11,7 @@ import { AccessGuard } from '@modules/authentication/guards/access.guard';
 import { RefreshGuard } from '@modules/authentication/guards/refresh.guard';
 import { PrismaModule } from '@/src/infra/prisma/prisma.module';
 import { APP_GUARD } from '@nestjs/core';
+import { RoleGuard } from '@modules/authentication/guards/role.guard';
 
 @Module({
   imports: [
@@ -36,6 +37,10 @@ import { APP_GUARD } from '@nestjs/core';
     {
       provide: APP_GUARD,
       useClass: AccessGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RoleGuard,
     },
     RefreshGuard,
   ],
