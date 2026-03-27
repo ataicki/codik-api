@@ -6,7 +6,7 @@ API для обучающего приложения
 
 ```bash
 # development mode
-$ pnpm run docker:dev:up
+$ docker compose -p codik -f docker/docker-compose.dev.yml up -d --build
 ```
 
 ## Run tests
