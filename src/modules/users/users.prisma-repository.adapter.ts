@@ -8,20 +8,11 @@ import { Token, User } from '@/generated/prisma/client';
 export class UsersPrismaRepositoryAdapter implements IUsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(
-    email: string,
-    passwordHash: string,
-    firstName: string,
-    lastName: string,
-    age: number,
-  ): Promise<User> {
+  create(email: string, passwordHash: string): Promise<User> {
     return this.prisma.user.create({
       data: {
         email,
         passwordHash,
-        firstName,
-        lastName,
-        age,
       },
     });
   }

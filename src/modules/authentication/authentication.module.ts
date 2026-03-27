@@ -9,9 +9,12 @@ import { AccessStrategy } from '@modules/authentication/strategies/access.strate
 import { RefreshStrategy } from '@modules/authentication/strategies/refresh.strategy';
 import { AccessGuard } from '@modules/authentication/guards/access.guard';
 import { RefreshGuard } from '@modules/authentication/guards/refresh.guard';
+import { PrismaModule } from '@/src/infra/prisma/prisma.module';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
+    EnvModule,
     JwtModule.registerAsync({
       imports: [EnvModule],
       inject: [EnvService],
@@ -24,12 +27,16 @@ import { RefreshGuard } from '@modules/authentication/guards/refresh.guard';
         }) as JwtModuleAsyncOptions,
     }),
     UsersModule,
+    PrismaModule,
   ],
   providers: [
     AuthenticationService,
     AccessStrategy,
     RefreshStrategy,
-    AccessGuard,
+    {
+      provide: APP_GUARD,
+      useClass: AccessGuard,
+    },
     RefreshGuard,
   ],
   controllers: [AuthenticationController],

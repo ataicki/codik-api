@@ -1,13 +1,7 @@
 import { Token, User } from '@generated/client';
 
 export interface IUsersRepository {
-  create(
-    email: string,
-    passwordHash: string,
-    firstName: string,
-    lastName: string,
-    age: number,
-  ): Promise<User>;
+  create(email: string, passwordHash: string): Promise<User>;
   findById(id: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
   upsertToken(

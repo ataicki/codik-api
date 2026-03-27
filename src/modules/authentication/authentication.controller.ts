@@ -21,11 +21,13 @@ import {
   REFRESH_COOKIE,
   type RefreshPayload,
 } from '@modules/authentication/types';
+import { Public } from '@modules/authentication/decorators/public.decorator';
 
 @Controller('authentication')
 export class AuthenticationController {
   constructor(private readonly authenticationService: AuthenticationService) {}
 
+  @Public()
   @Post('sign-up')
   async signUp(
     @Body() dto: SignUpDto,
@@ -55,6 +57,7 @@ export class AuthenticationController {
     return { success: true };
   }
 
+  @Public()
   @Post('sign-in')
   @HttpCode(HttpStatus.OK)
   async signIn(
@@ -91,6 +94,7 @@ export class AuthenticationController {
     return user;
   }
 
+  @Public()
   @UseGuards(RefreshGuard)
   @Post('sign-out')
   @HttpCode(HttpStatus.OK)
@@ -114,6 +118,7 @@ export class AuthenticationController {
     return { success: true };
   }
 
+  @Public()
   @UseGuards(RefreshGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)

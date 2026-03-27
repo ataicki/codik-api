@@ -16,9 +16,6 @@ datasource db {
 model User {
   id           String @id @default(uuid())
   email        String @unique
-  firstName    String @map("first_name")
-  lastName     String @map("last_name")
-  age          Int
   passwordHash String
 
   createdAt DateTime @default(now()) @map("created_at")

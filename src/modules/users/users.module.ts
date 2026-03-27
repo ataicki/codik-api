@@ -2,8 +2,10 @@ import { Module } from '@nestjs/common';
 import { UsersService } from '@modules/users/users.service';
 import { UsersPrismaRepositoryAdapter } from '@modules/users/users.prisma-repository.adapter';
 import { USERS_REPOSITORY } from '@modules/users/users.repository.port';
+import { PrismaModule } from '@/src/infra/prisma/prisma.module';
 
 @Module({
+  imports: [PrismaModule],
   providers: [
     UsersService,
     {

@@ -3,7 +3,6 @@ import { EnvService } from '@/src/infra/env/env.service';
 import { ConfigModule } from '@nestjs/config';
 import { envSchema } from '@/src/infra/env/env';
 
-@Global()
 @Module({
   imports: [
     ConfigModule.forRoot({
