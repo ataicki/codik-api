@@ -22,6 +22,8 @@ import {
   type RefreshPayload,
 } from '@modules/authentication/types';
 import { Public } from '@modules/authentication/decorators/public.decorator';
+import { UserAgent } from '@modules/authentication/decorators/user-agent.decorator';
+import { Cookie } from '@modules/authentication/decorators/cookie.decorator';
 
 @Controller('authentication')
 export class AuthenticationController {
@@ -31,11 +33,9 @@ export class AuthenticationController {
   @Post('sign-up')
   async signUp(
     @Body() dto: SignUpDto,
-    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
+    @UserAgent() userAgent: string,
   ) {
-    const userAgent = req.headers['user-agent'] ?? '';
-
     const tokens = await this.authenticationService.signUp(dto, userAgent);
 
     res.cookie('refreshToken', tokens.refreshToken, {
@@ -62,11 +62,9 @@ export class AuthenticationController {
   @HttpCode(HttpStatus.OK)
   async signIn(
     @Body() dto: SignInDto,
-    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
+    @UserAgent() userAgent: string,
   ) {
-    const userAgent = req.headers['user-agent'] ?? '';
-
     const tokens = await this.authenticationService.signIn(dto, userAgent);
 
     res.cookie('refreshToken', tokens.refreshToken, {
@@ -100,12 +98,10 @@ export class AuthenticationController {
   @HttpCode(HttpStatus.OK)
   async signOut(
     @CurrentUser() user: RefreshPayload,
-    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
+    @UserAgent() userAgent: string,
+    @Cookie(REFRESH_COOKIE) refreshToken: string,
   ) {
-    const refreshToken = req.cookies[REFRESH_COOKIE] as string;
-    const userAgent = req.headers['user-agent'] ?? '';
-
     await this.authenticationService.signOut(
       user.userId,
       refreshToken,
@@ -124,12 +120,10 @@ export class AuthenticationController {
   @HttpCode(HttpStatus.OK)
   async refresh(
     @CurrentUser() user: RefreshPayload,
-    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
+    @UserAgent() userAgent: string,
+    @Cookie(REFRESH_COOKIE) refreshToken: string,
   ) {
-    const refreshToken = req.cookies[REFRESH_COOKIE] as string;
-    const userAgent = req.headers['user-agent'] ?? '';
-
     const { accessToken, refreshToken: newRefresh } =
       await this.authenticationService.refresh(
         user.userId,
