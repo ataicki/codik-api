@@ -31,6 +31,8 @@ model User {
   student       Student?
   parent        Parent?
   courseCreator CourseCreator?
+  courses       CourseEnrollment[]
+  attempts      QuestionAttempt[]
 
   @@map("users")
 }
@@ -78,13 +80,147 @@ model Parent {
 }
 
 model CourseCreator {
-  id       String @id @default(uuid())
-  userId   String @unique @map("user_id")
-  fullName String @map("full_name")
+  id       String   @id @default(uuid())
+  userId   String   @unique @map("user_id")
+  fullName String   @map("full_name")
+  courses  Course[]
 
   createdAt DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("cource_creators")
+}
+
+model Course {
+  id              String             @id @default(uuid())
+  title           String
+  description     String             @db.Text
+  modules         Module[]
+  students        CourseEnrollment[]
+  courseCreator   CourseCreator?     @relation(fields: [courseCreatorId], references: [id], onDelete: SetNull)
+  courseCreatorId String?
+
+  isAvailable Boolean @default(false) @map("is_available")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("courses")
+}
+
+model CourseEnrollment {
+  id          String    @id @default(uuid())
+  course      Course    @relation(fields: [courseId], references: [id])
+  courseId    String    @map("course_id")
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String    @map("user_id")
+  enrolledAt  DateTime  @default(now()) @map("enrolled_at")
+  completedAt DateTime? @map("completed_at")
+
+  @@unique([courseId, userId])
+  @@map("course_enrollments")
+}
+
+model Module {
+  id       String @id @default(uuid())
+  title    String
+  order    Int
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId String @map("course_id")
+  steps    Step[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("modules")
+}
+
+enum StepType {
+  LESSON
+  TEST
+}
+
+model Step {
+  id       String   @id @default(uuid())
+  order    Int
+  type     StepType
+  lessonId String?  @map("lesson_id")
+  lesson   Lesson?  @relation(fields: [lessonId], references: [id])
+  testId   String?  @map("test_id")
+  test     Test?    @relation(fields: [testId], references: [id])
+  module   Module   @relation(fields: [moduleId], references: [id])
+  moduleId String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("steps")
+}
+
+model Lesson {
+  id    String @id @default(uuid())
+  title String
+
+  content String? @db.Text
+  steps   Step[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("lessons")
+}
+
+model Test {
+  id        String        @id @default(uuid())
+  title     String
+  steps     Step[]
+  questions Question[]
+  attempts  TestAttempt[]
+
+  @@map("tests")
+}
+
+model Question {
+  id       String            @id @default(uuid())
+  question String
+  test     Test              @relation(fields: [testId], references: [id])
+  testId   String            @map("test_id")
+  answers  Answer[]
+  attempts QuestionAttempt[]
+
+  @@map("questions")
+}
+
+model Answer {
+  id         String            @id @default(uuid())
+  answer     String
+  isCorrect  Boolean           @default(false)
+  question   Question          @relation(fields: [questionId], references: [id])
+  questionId String            @map("test_question_id")
+  attempts   QuestionAttempt[]
+
+  @@map("answers")
+}
+
+model QuestionAttempt {
+  id         String   @id @default(uuid())
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId String   @map("question_id")
+  answer     Answer   @relation(fields: [answerId], references: [id])
+  answerId   String   @map("answer_id")
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("question_attempts")
+}
+
+model TestAttempt {
+  id     String @id @default(uuid())
+  test   Test   @relation(fields: [testId], references: [id])
+  testId String
+
+  @@map("test_attempts")
 }
