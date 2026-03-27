@@ -19,7 +19,9 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "docker:up": "docker compose -p codik -f docker/docker-compose.yml up -d",
-    "docker:down": "docker compose -p codik -f docker/docker-compose.yml down"
+    "docker:down": "docker compose -p codik -f docker/docker-compose.yml down",
+    "docker:dev:up": "docker compose -p codik -f docker/docker-compose.dev.yml up -d --build",
+    "docker:dev:down": "docker compose -p codik -f docker/docker-compose.dev.yml down -v"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

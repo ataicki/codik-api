@@ -13,7 +13,7 @@ export const userResponseSchema = z.object({
   role: z.enum(Role).meta({
     example: 'STUDENT',
   }),
-  createdAt: z.string().meta({
+  createdAt: z.coerce.string().meta({
     example: '2026-03-27T05:45:55.997Z',
   }),
 });
