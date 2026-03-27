@@ -4,11 +4,21 @@ import { createZodDto } from 'nestjs-zod';
 import { Role } from '@generated/enums';
 
 const signUpSchema = z.object({
-  email: z.string(),
-  password: z.string(),
-  fullName: z.string(),
-  role: z.enum(Role),
-  age: z.coerce.number().optional(),
+  email: z.string().meta({
+    example: 'artem@gmail.com',
+  }),
+  password: z.string().meta({
+    example: 'asdfjkl',
+  }),
+  fullName: z.string().meta({
+    example: 'Artem Kosyrev',
+  }),
+  role: z.enum(Role).meta({
+    example: 'STUDENT',
+  }),
+  age: z.coerce.number().optional().meta({
+    example: 12,
+  }),
 });
 
 export class SignUpDto extends createZodDto(signUpSchema) {}

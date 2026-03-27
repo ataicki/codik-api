@@ -23,8 +23,20 @@ import {
 import { Public } from '@modules/authentication/decorators/public.decorator';
 import { UserAgent } from '@modules/authentication/decorators/user-agent.decorator';
 import { Cookie } from '@modules/authentication/decorators/cookie.decorator';
-import { Roles } from '@modules/authentication/decorators/roles.decorator';
-import { Role } from '@generated/enums';
+import {
+  ApiConflictResponse,
+  ApiCookieAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import {
+  UserResponseDto,
+  userResponseSchema,
+} from '@modules/authentication/dtos/user-response.dto';
 
 @Controller('authentication')
 export class AuthenticationController {
@@ -32,6 +44,12 @@ export class AuthenticationController {
 
   @Public()
   @Post('sign-up')
+  @ApiOperation({ summary: 'Регистрация' })
+  @ApiCreatedResponse({
+    description: 'Данные пользователя',
+    type: UserResponseDto,
+  })
+  @ApiConflictResponse({ description: 'Email уже занят' })
   async signUp(
     @Body() dto: SignUpDto,
     @Res({ passthrough: true }) res: Response,
@@ -55,12 +73,17 @@ export class AuthenticationController {
       maxAge: 15 * 60 * 1000,
     });
 
-    return { success: true };
+    return {
+      user: userResponseSchema.parse(tokens.user),
+    };
   }
 
   @Public()
   @Post('sign-in')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Вход' })
+  @ApiOkResponse({ description: 'Успешный вход' })
+  @ApiUnauthorizedResponse({ description: 'Неверные данные' })
   async signIn(
     @Body() dto: SignInDto,
     @Res({ passthrough: true }) res: Response,
@@ -84,12 +107,18 @@ export class AuthenticationController {
       maxAge: 15 * 60 * 1000,
     });
 
-    return { success: true };
+    return {
+      user: userResponseSchema.parse(tokens.user),
+    };
   }
 
   // @Roles(Role.STUDENT, Role.COURSE_CREATOR)
   @UseGuards(AccessGuard)
   @Get('me')
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({ summary: 'Текущий пользователь' })
+  @ApiOkResponse({ description: 'Данные пользователя' })
+  @ApiForbiddenResponse({ description: 'Не авторизован' })
   me(@CurrentUser() user: RefreshPayload) {
     return this.authenticationService.getMe(user.userId);
   }
@@ -98,6 +127,10 @@ export class AuthenticationController {
   @UseGuards(RefreshGuard)
   @Post('sign-out')
   @HttpCode(HttpStatus.OK)
+  @ApiCookieAuth('refreshToken')
+  @ApiOperation({ summary: 'Выход' })
+  @ApiOkResponse({ description: 'Успешный выход' })
+  @ApiForbiddenResponse({ description: 'Не авторизован' })
   async signOut(
     @CurrentUser() user: RefreshPayload,
     @Res({ passthrough: true }) res: Response,
@@ -120,18 +153,25 @@ export class AuthenticationController {
   @UseGuards(RefreshGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
+  @ApiCookieAuth('refreshToken')
+  @ApiOperation({ summary: 'Обновление токенов' })
+  @ApiOkResponse({ description: 'Успешное обновление токенов' })
+  @ApiForbiddenResponse({ description: 'Не авторизован' })
   async refresh(
-    @CurrentUser() user: RefreshPayload,
+    @CurrentUser() currentUser: RefreshPayload,
     @Res({ passthrough: true }) res: Response,
     @UserAgent() userAgent: string,
     @Cookie(REFRESH_COOKIE) refreshToken: string,
   ) {
-    const { accessToken, refreshToken: newRefresh } =
-      await this.authenticationService.refresh(
-        user.userId,
-        refreshToken,
-        userAgent,
-      );
+    const {
+      accessToken,
+      refreshToken: newRefresh,
+      user,
+    } = await this.authenticationService.refresh(
+      currentUser.userId,
+      refreshToken,
+      userAgent,
+    );
 
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
@@ -147,6 +187,8 @@ export class AuthenticationController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return { success: true };
+    return {
+      user: userResponseSchema.parse(user),
+    };
   }
 }

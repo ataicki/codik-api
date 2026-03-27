@@ -11,7 +11,10 @@ import { SignUpDto } from '@modules/authentication/dtos/sign-up.dto';
 import { SignInDto } from '@modules/authentication/dtos/sign-in.dto';
 import { EnvService } from '@/src/infra/env/env.service';
 import { AccessPayload, RefreshPayload } from '@modules/authentication/types';
-import { UserResponseDto } from '@modules/authentication/dtos/user-response.dto';
+import {
+  UserResponseDto,
+  userResponseSchema,
+} from '@modules/authentication/dtos/user-response.dto';
 import { User } from '@generated/client';
 
 @Injectable()
@@ -25,7 +28,16 @@ export class AuthenticationService {
   async signUp(signUpDto: SignUpDto, userAgent: string) {
     const user = await this.usersService.create(signUpDto);
 
-    return this.issueTokens(user, userAgent);
+    const { accessToken, refreshToken } = await this.issueTokens(
+      user,
+      userAgent,
+    );
+
+    return {
+      accessToken,
+      refreshToken,
+      user,
+    };
   }
 
   async signIn(signInDto: SignInDto, userAgent: string) {
@@ -42,7 +54,16 @@ export class AuthenticationService {
       throw new UnauthorizedException();
     }
 
-    return this.issueTokens(user, userAgent);
+    const { accessToken, refreshToken } = await this.issueTokens(
+      user,
+      userAgent,
+    );
+
+    return {
+      accessToken,
+      refreshToken,
+      user,
+    };
   }
 
   async getMe(userId: string) {
@@ -51,7 +72,7 @@ export class AuthenticationService {
       throw new UnauthorizedException();
     }
 
-    return UserResponseDto.parse(user);
+    return userResponseSchema.parse(user);
   }
 
   async signOut(userId: string, refreshToken: string, userAgent: string) {
@@ -86,7 +107,16 @@ export class AuthenticationService {
 
     await this.usersService.deleteToken(userId, userAgent);
 
-    return this.issueTokens(user, userAgent);
+    const { accessToken, refreshToken: tokenRt } = await this.issueTokens(
+      user,
+      userAgent,
+    );
+
+    return {
+      accessToken,
+      refreshToken: tokenRt,
+      user,
+    };
   }
 
   async issueTokens(user: User, userAgent: string) {

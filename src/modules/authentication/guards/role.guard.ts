@@ -15,7 +15,6 @@ export class RoleGuard implements CanActivate {
       ctx.getHandler(),
       ctx.getClass(),
     ]);
-    console.log(requiredRoles);
 
     if (!requiredRoles) {
       return true;
@@ -23,7 +22,6 @@ export class RoleGuard implements CanActivate {
 
     const request = ctx.switchToHttp().getRequest();
     const user = request.user;
-    console.log(user);
     return requiredRoles.includes(user?.role);
   }
 }
