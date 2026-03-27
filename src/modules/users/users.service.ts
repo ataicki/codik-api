@@ -23,7 +23,8 @@ export class UsersService {
     }
 
     const passwordHash = await argon2.hash(createUserDto.password);
-    return this.usersRepository.create(createUserDto.email, passwordHash);
+
+    return this.usersRepository.create(passwordHash, createUserDto);
   }
 
   async findById(id: string) {

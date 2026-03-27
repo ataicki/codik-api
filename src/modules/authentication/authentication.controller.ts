@@ -5,11 +5,10 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 
 import { AuthenticationService } from '@modules/authentication/authentication.service';
 import { SignInDto } from '@modules/authentication/dtos/sign-in.dto';
@@ -89,7 +88,7 @@ export class AuthenticationController {
   @UseGuards(AccessGuard)
   @Get('me')
   me(@CurrentUser() user: RefreshPayload) {
-    return user;
+    return this.authenticationService.getMe(user.userId);
   }
 
   @Public()

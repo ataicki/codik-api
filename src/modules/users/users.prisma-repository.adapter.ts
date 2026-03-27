@@ -2,17 +2,47 @@ import { Injectable } from '@nestjs/common';
 
 import { IUsersRepository } from '@modules/users/users.repository.port';
 import { PrismaService } from '@/src/infra/prisma/prisma.service';
-import { Token, User } from '@/generated/prisma/client';
+import { Role, Token, User } from '@/generated/prisma/client';
+import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
 
 @Injectable()
 export class UsersPrismaRepositoryAdapter implements IUsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(email: string, passwordHash: string): Promise<User> {
+  create(passwordHash: string, createUserDto: CreateUserDto): Promise<User> {
     return this.prisma.user.create({
       data: {
-        email,
+        email: createUserDto.email,
         passwordHash,
+        role: createUserDto.role,
+
+        student:
+          createUserDto.role === Role.STUDENT
+            ? {
+                create: {
+                  fullName: createUserDto.fullName,
+                  age: createUserDto.age!,
+                },
+              }
+            : undefined,
+
+        parent:
+          createUserDto.role === Role.PARENT
+            ? {
+                create: {
+                  fullName: createUserDto.fullName,
+                },
+              }
+            : undefined,
+
+        courseCreator:
+          createUserDto.role === Role.COURSE_CREATOR
+            ? {
+                create: {
+                  fullName: createUserDto.fullName,
+                },
+              }
+            : undefined,
       },
     });
   }

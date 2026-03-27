@@ -1,7 +1,8 @@
 import { Token, User } from '@generated/client';
+import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
 
 export interface IUsersRepository {
-  create(email: string, passwordHash: string): Promise<User>;
+  create(passwordHash: string, dto: CreateUserDto): Promise<User>;
   findById(id: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
   upsertToken(

@@ -11,6 +11,7 @@ import { SignUpDto } from '@modules/authentication/dtos/sign-up.dto';
 import { SignInDto } from '@modules/authentication/dtos/sign-in.dto';
 import { EnvService } from '@/src/infra/env/env.service';
 import { AccessPayload, RefreshPayload } from '@modules/authentication/types';
+import { UserResponseDto } from '@modules/authentication/dtos/user-response.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -22,6 +23,7 @@ export class AuthenticationService {
 
   async signUp(signUpDto: SignUpDto, userAgent: string) {
     const user = await this.usersService.create(signUpDto);
+
     return this.issueTokens(user.id, userAgent);
   }
 
@@ -40,6 +42,15 @@ export class AuthenticationService {
     }
 
     return this.issueTokens(user.id, userAgent);
+  }
+
+  async getMe(userId: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    return UserResponseDto.parse(user);
   }
 
   async signOut(userId: string, refreshToken: string, userAgent: string) {
