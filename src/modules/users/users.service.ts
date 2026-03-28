@@ -6,6 +6,7 @@ import {
   type IUsersRepository,
   USERS_REPOSITORY,
 } from '@modules/users/users.repository.port';
+import { UpdateUserDto } from '@modules/users/dtos/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -46,5 +47,9 @@ export class UsersService {
 
   async deleteToken(userId: string, userAgent: string) {
     return this.usersRepository.deleteToken(userId, userAgent);
+  }
+
+  async updateUser(userId: string, updateUserDto: UpdateUserDto) {
+    return this.usersRepository.updateUser(userId, updateUserDto.avatarUrl);
   }
 }

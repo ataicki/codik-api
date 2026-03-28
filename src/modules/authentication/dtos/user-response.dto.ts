@@ -10,6 +10,10 @@ export const userResponseSchema = z.object({
   email: z.string().meta({
     example: 'artem@gmail.com',
   }),
+  avatarUrl: z.string().nullable().meta({
+    example:
+      'http://localhost:9001/courses/434ec34c-5eb9-430f-a3d1-a0c1de8c3001-1774688201680.jpg',
+  }),
   role: z.enum(Role).meta({
     example: 'STUDENT',
   }),

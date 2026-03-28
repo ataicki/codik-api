@@ -5,6 +5,10 @@ export interface IUsersRepository {
   create(passwordHash: string, dto: CreateUserDto): Promise<User>;
   findById(id: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
+  updateUser(
+    userId: string,
+    avatarUrl: string | undefined,
+  ): Promise<User | null>;
   upsertToken(
     userId: string,
     hashedRt: string,
