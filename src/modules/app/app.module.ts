@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { EnvModule } from '@/src/infra/env/env.module';
 import { PrismaModule } from '@/src/infra/prisma/prisma.module';
 import { UsersModule } from '@modules/users/users.module';
@@ -8,6 +6,9 @@ import { AuthenticationModule } from '@modules/authentication/authentication.mod
 import { EducationModule } from '@modules/education/education.module';
 import { MinioModule } from 'nestjs-minio-s3';
 import { EnvService } from '@/src/infra/env/env.service';
+import { AppController } from '@modules/app/app.controller';
+import { AppService } from '@modules/app/app.service';
+import { ProfileModule } from '@modules/profile/profile.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EnvService } from '@/src/infra/env/env.service';
     EnvModule,
     PrismaModule,
     UsersModule,
+    ProfileModule,
     AuthenticationModule,
     EducationModule,
   ],
