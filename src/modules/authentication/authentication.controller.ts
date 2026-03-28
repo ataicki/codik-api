@@ -1,12 +1,15 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Post,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import type { Response } from 'express';
 
@@ -17,6 +20,7 @@ import { AccessGuard } from '@modules/authentication/guards/access.guard';
 import { RefreshGuard } from '@modules/authentication/guards/refresh.guard';
 import { CurrentUser } from '@modules/authentication/decorators/current-user.decorator';
 import {
+  type AccessPayload,
   REFRESH_COOKIE,
   type RefreshPayload,
 } from '@modules/authentication/types';
@@ -24,7 +28,9 @@ import { Public } from '@modules/authentication/decorators/public.decorator';
 import { UserAgent } from '@modules/authentication/decorators/user-agent.decorator';
 import { Cookie } from '@modules/authentication/decorators/cookie.decorator';
 import {
+  ApiBody,
   ApiConflictResponse,
+  ApiConsumes,
   ApiCookieAuth,
   ApiCreatedResponse,
   ApiForbiddenResponse,
@@ -37,6 +43,7 @@ import {
   UserResponseDto,
   userResponseSchema,
 } from '@modules/authentication/dtos/user-response.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('authentication')
 export class AuthenticationController {
@@ -158,7 +165,7 @@ export class AuthenticationController {
   @ApiOkResponse({ description: 'Успешное обновление токенов' })
   @ApiForbiddenResponse({ description: 'Не авторизован' })
   async refresh(
-    @CurrentUser() currentUser: RefreshPayload,
+    @CurrentUser() currentUser: AccessPayload,
     @Res({ passthrough: true }) res: Response,
     @UserAgent() userAgent: string,
     @Cookie(REFRESH_COOKIE) refreshToken: string,
@@ -190,5 +197,42 @@ export class AuthenticationController {
     return {
       user: userResponseSchema.parse(user),
     };
+  }
+
+  @Post('avatar')
+  @UseInterceptors(FileInterceptor('avatar'))
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({ summary: 'Загрузить аватар' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        avatar: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @ApiOkResponse({ description: 'URL загруженного аватара' })
+  @ApiUnauthorizedResponse({ description: 'Не авторизован' })
+  async uploadAvatar(
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: AccessPayload,
+  ) {
+    const avatarUrl = await this.authenticationService.uploadAvatar(
+      user.userId,
+      file,
+    );
+
+    return { avatarUrl };
+  }
+
+  @Delete('avatar')
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({ summary: 'Удалить аватар' })
+  @ApiOkResponse({ description: 'Аватар удалён' })
+  @ApiUnauthorizedResponse({ description: 'Не авторизован' })
+  async removeAvatar(@CurrentUser() user: AccessPayload) {
+    await this.authenticationService.deleteAvatar(user.userId);
+    return { message: 'Avatar deleted successfully' };
   }
 }

@@ -9,6 +9,18 @@ import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
 export class UsersPrismaRepositoryAdapter implements IUsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  updateUser(
+    userId: string,
+    avatarUrl: string | undefined,
+  ): Promise<User | null> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        avatarUrl,
+      },
+    });
+  }
+
   create(passwordHash: string, createUserDto: CreateUserDto): Promise<User> {
     return this.prisma.user.create({
       data: {

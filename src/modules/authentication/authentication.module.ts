@@ -12,6 +12,7 @@ import { RefreshGuard } from '@modules/authentication/guards/refresh.guard';
 import { PrismaModule } from '@/src/infra/prisma/prisma.module';
 import { APP_GUARD } from '@nestjs/core';
 import { RoleGuard } from '@modules/authentication/guards/role.guard';
+import { MinioModule } from 'nestjs-minio-s3';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { RoleGuard } from '@modules/authentication/guards/role.guard';
     }),
     UsersModule,
     PrismaModule,
+    MinioModule.forFeature({ bucketName: 'avatars', policy: 'public' }),
   ],
   providers: [
     AuthenticationService,

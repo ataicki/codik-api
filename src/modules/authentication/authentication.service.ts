@@ -1,10 +1,13 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
+import { MinioService } from 'nestjs-minio-s3';
 
 import { UsersService } from '@modules/users/users.service';
 import { SignUpDto } from '@modules/authentication/dtos/sign-up.dto';
@@ -13,6 +16,7 @@ import { EnvService } from '@/src/infra/env/env.service';
 import { AccessPayload, RefreshPayload } from '@modules/authentication/types';
 import { userResponseSchema } from '@modules/authentication/dtos/user-response.dto';
 import { User } from '@generated/client';
+import { InjectBucket } from 'nestjs-minio-s3/dist/decorators/inject-bucket.decorator';
 
 @Injectable()
 export class AuthenticationService {
@@ -20,6 +24,8 @@ export class AuthenticationService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly envService: EnvService,
+    @InjectBucket() private readonly bucketName: string,
+    private readonly minioService: MinioService,
   ) {}
 
   async signUp(signUpDto: SignUpDto, userAgent: string) {
@@ -132,5 +138,70 @@ export class AuthenticationService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async uploadAvatar(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<string> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const oldAvatarUrl = user?.avatarUrl;
+
+    const ext = file.originalname.split('.').pop();
+    const key = `${userId}-${Date.now()}.${ext}`;
+
+    const newAvatarUrl = await this.minioService.upload(
+      this.bucketName,
+      key,
+      file.buffer,
+      file.mimetype,
+    );
+
+    await this.usersService.updateUser(userId, { avatarUrl: newAvatarUrl });
+
+    if (oldAvatarUrl) {
+      try {
+        const oldKey = this.minioService.getKeyFromUrl(
+          oldAvatarUrl,
+          this.bucketName,
+        );
+        if (oldKey) {
+          await this.minioService.delete(this.bucketName, oldKey);
+        }
+      } catch (err) {
+        console.error('Failed to delete old avatar:', err);
+      }
+    }
+
+    return newAvatarUrl;
+  }
+
+  async deleteAvatar(userId: string): Promise<void> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (!user?.avatarUrl) {
+      throw new BadRequestException('User has no avatar');
+    }
+
+    await this.usersService.updateUser(userId, { avatarUrl: undefined });
+
+    try {
+      const key = this.minioService.getKeyFromUrl(
+        user.avatarUrl,
+        this.bucketName,
+      );
+      if (key) {
+        await this.minioService.delete(this.bucketName, key);
+      }
+    } catch (err) {
+      console.error('Failed to delete avatar from S3:', err);
+    }
   }
 }
