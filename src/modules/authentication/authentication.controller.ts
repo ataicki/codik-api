@@ -191,4 +191,8 @@ export class AuthenticationController {
       user: userResponseSchema.parse(user),
     };
   }
+
+  addAvatar() {}
+
+  removeAvatar() {}
 }
