@@ -11,10 +11,7 @@ import { SignUpDto } from '@modules/authentication/dtos/sign-up.dto';
 import { SignInDto } from '@modules/authentication/dtos/sign-in.dto';
 import { EnvService } from '@/src/infra/env/env.service';
 import { AccessPayload, RefreshPayload } from '@modules/authentication/types';
-import {
-  UserResponseDto,
-  userResponseSchema,
-} from '@modules/authentication/dtos/user-response.dto';
+import { userResponseSchema } from '@modules/authentication/dtos/user-response.dto';
 import { User } from '@generated/client';
 
 @Injectable()
@@ -120,7 +117,7 @@ export class AuthenticationService {
   }
 
   async issueTokens(user: User, userAgent: string) {
-    const accessPayload: AccessPayload = { sub: user.id, role: user.role };
+    const accessPayload: AccessPayload = { userId: user.id, role: user.role };
     const accessToken = await this.jwtService.signAsync(accessPayload);
 
     const refreshPayload: RefreshPayload = { userId: user.id };

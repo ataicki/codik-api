@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { Role, User } from '@generated/client';
 
 export interface AccessPayload {
-  sub: string;
+  userId: string;
   role: Role;
 }
 
