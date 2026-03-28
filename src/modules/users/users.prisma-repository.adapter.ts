@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { IUsersRepository } from '@modules/users/users.repository.port';
 import { PrismaService } from '@/src/infra/prisma/prisma.service';
-import { Role, Token, User } from '@/generated/prisma/client';
+import { Parent, Role, Token, User } from '@/generated/prisma/client';
 import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
 
 @Injectable()
@@ -129,6 +129,31 @@ export class UsersPrismaRepositoryAdapter implements IUsersRepository {
     await this.prisma.token.delete({
       where: {
         hashedRt: token.hashedRt,
+      },
+    });
+  }
+
+  async findParentByUserId(userId: string): Promise<Parent | null> {
+    return this.prisma.parent.findUnique({ where: { userId } });
+  }
+
+  async createChild(
+    passwordHash: string,
+    dto: CreateUserDto,
+    parentId: string,
+  ): Promise<User> {
+    return this.prisma.user.create({
+      data: {
+        email: dto.email,
+        passwordHash,
+        role: Role.STUDENT,
+        student: {
+          create: {
+            fullName: dto.fullName,
+            age: dto.age!,
+            parentId,
+          },
+        },
       },
     });
   }

@@ -1,4 +1,4 @@
-import { Token, User } from '@generated/client';
+import { Parent, Student, Token, User } from '@generated/client';
 import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
 
 export interface IUsersRepository {
@@ -16,6 +16,12 @@ export interface IUsersRepository {
   ): Promise<void>;
   findToken(userId: string, userAgent: string): Promise<Token | null>;
   deleteToken(userId: string, userAgent: string): Promise<void>;
+  findParentByUserId(userId: string): Promise<Parent | null>;
+  createChild(
+    passwordHash: string,
+    dto: CreateUserDto,
+    parentId: string,
+  ): Promise<User>;
 }
 
 export const USERS_REPOSITORY = Symbol('USERS_REPOSITORY');
