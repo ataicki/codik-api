@@ -10,6 +10,8 @@ import { ModuleController } from '@modules/education/presentation/module.control
 import { StepController } from '@modules/education/presentation/step.controller';
 import { LessonService } from '@modules/education/application/lesson.service';
 import { LessonController } from '@modules/education/presentation/lesson.controller';
+import { TestController } from '@modules/education/presentation/test.controller';
+import { TestService } from '@modules/education/application/test.service';
 
 @Module({
   imports: [
@@ -21,6 +23,7 @@ import { LessonController } from '@modules/education/presentation/lesson.control
     ModuleController,
     StepController,
     LessonController,
+    TestController,
   ],
   providers: [
     CourseService,
@@ -28,6 +31,7 @@ import { LessonController } from '@modules/education/presentation/lesson.control
     ModuleService,
     StepService,
     LessonService,
+    TestService,
   ],
 })
 export class EducationModule {}

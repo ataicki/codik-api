@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -26,6 +27,9 @@ import {
   EnrollmentDto,
   ProgressDto,
   UploadImageDto,
+  CreatorCoursesQueryDto,
+  EnrolledCourseDto,
+  EnrolledCoursesQueryDto,
 } from './dto/course.dto';
 import { CourseService } from '../application/course.service';
 import { CurrentUser } from '@modules/authentication/decorators/current-user.decorator';
@@ -67,6 +71,28 @@ export class CourseController {
   @ApiResponse({ status: 200, type: [CourseListItemDto] })
   async findPending() {
     return this.courseService.findPending();
+  }
+
+  @Get('my')
+  @Roles('COURSE_CREATOR')
+  @UseGuards(RoleGuard)
+  @ApiOperation({ summary: 'Мои курсы (создатель)' })
+  @ApiResponse({ status: 200, type: [CourseListItemDto] })
+  async findMyCourses(
+    @CurrentUser() user: RefreshPayload,
+    @Query() query: CreatorCoursesQueryDto,
+  ) {
+    return this.courseService.findMyCoursesAsCreator(user.userId, query.status);
+  }
+
+  @Get('enrolled')
+  @ApiOperation({ summary: 'Курсы на которые записан пользователь' })
+  @ApiResponse({ status: 200, type: [EnrolledCourseDto] })
+  async findEnrolled(
+    @CurrentUser() user: RefreshPayload,
+    @Query() query: EnrolledCoursesQueryDto,
+  ) {
+    return this.courseService.findEnrolledCourses(user.userId, query.completed);
   }
 
   @Get(':id')
