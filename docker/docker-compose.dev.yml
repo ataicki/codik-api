@@ -1,0 +1,45 @@
+services:
+  pg:
+    image: postgres:18.1-alpine
+    restart: unless-stopped
+    env_file:
+      - ../.env.dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ 'CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}' ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2023-09-07T02-05-02Z
+    restart: unless-stopped
+    command: server /data --address ":9000" --console-address ":9090"
+    ports:
+      - "9001:9000"
+      - "9091:9090"
+    env_file:
+      - ../.env.dev
+    volumes:
+      - ./data/minio:/data
+
+  api:
+    container_name: api
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    env_file:
+      - ../.env.dev
+    environment:
+      DATABASE_URL: postgresql://postgres:asdfjkl@pg:5432/nestjs?schema=public
+    ports:
+      - '5000:5000'
+    depends_on:
+      pg:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
