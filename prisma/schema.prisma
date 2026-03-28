@@ -17,6 +17,7 @@ enum Role {
   STUDENT
   PARENT
   COURSE_CREATOR
+  ADMIN
 }
 
 model User {
@@ -33,6 +34,7 @@ model User {
   courseCreator CourseCreator?
   courses       CourseEnrollment[]
   attempts      QuestionAttempt[]
+  progress      StepProgress[]
 
   @@map("users")
 }
@@ -92,6 +94,12 @@ model CourseCreator {
   @@map("cource_creators")
 }
 
+enum CourseStatus {
+  PENDING_MODERATION
+  PUBLISHED
+  REJECTED
+}
+
 model Course {
   id              String             @id @default(uuid())
   title           String
@@ -100,6 +108,9 @@ model Course {
   students        CourseEnrollment[]
   courseCreator   CourseCreator?     @relation(fields: [courseCreatorId], references: [id], onDelete: SetNull)
   courseCreatorId String?
+  status          CourseStatus       @default(PENDING_MODERATION)
+  imageId         String?            @unique @map("image_id")
+  image           File?              @relation(fields: [imageId], references: [id])
 
   isAvailable Boolean @default(false) @map("is_available")
 
@@ -142,20 +153,34 @@ enum StepType {
 }
 
 model Step {
-  id       String   @id @default(uuid())
-  order    Int
-  type     StepType
-  lessonId String?  @map("lesson_id")
-  lesson   Lesson?  @relation(fields: [lessonId], references: [id])
-  testId   String?  @map("test_id")
-  test     Test?    @relation(fields: [testId], references: [id])
-  module   Module   @relation(fields: [moduleId], references: [id])
-  moduleId String
+  id            String         @id @default(uuid())
+  order         Int
+  type          StepType
+  lessonId      String?        @map("lesson_id")
+  lesson        Lesson?        @relation(fields: [lessonId], references: [id])
+  testId        String?        @map("test_id")
+  test          Test?          @relation(fields: [testId], references: [id])
+  module        Module         @relation(fields: [moduleId], references: [id])
+  moduleId      String
+  usersProgress StepProgress[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("steps")
+}
+
+model StepProgress {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+  stepId String @map("step_id")
+  step   Step   @relation(fields: [stepId], references: [id])
+
+  completedAt DateTime @default(now()) @map("completed_at")
+
+  @@unique([userId, stepId])
+  @@map("step_progress")
 }
 
 model Lesson {
@@ -223,4 +248,13 @@ model TestAttempt {
   testId String
 
   @@map("test_attempts")
+}
+
+model File {
+  id     String  @id @default(uuid())
+  url    String
+  key    String
+  course Course?
+
+  @@map("files")
 }
