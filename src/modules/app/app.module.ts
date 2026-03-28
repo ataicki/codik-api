@@ -9,6 +9,7 @@ import { EnvService } from '@/src/infra/env/env.service';
 import { AppController } from '@modules/app/app.controller';
 import { AppService } from '@modules/app/app.service';
 import { ProfileModule } from '@modules/profile/profile.module';
+import { SeedModule } from '@/src/infra/seed/seed.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ProfileModule } from '@modules/profile/profile.module';
     ProfileModule,
     AuthenticationModule,
     EducationModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],
