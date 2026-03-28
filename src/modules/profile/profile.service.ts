@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Role } from '@generated/enums';
 import { UpdateProfileDto } from '@modules/profile/dtos/update-profile.dto';
 import { PrismaService } from '@/src/infra/prisma/prisma.service';
@@ -12,10 +12,19 @@ export class ProfileService {
       case Role.STUDENT:
         return this.prisma.user.findUnique({
           where: { id: userId },
-          include: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            avatarUrl: true,
+            createdAt: true,
             student: {
-              include: {
-                parent: true,
+              select: {
+                fullName: true,
+                age: true,
+                parent: {
+                  select: { fullName: true },
+                },
               },
             },
           },
@@ -23,10 +32,41 @@ export class ProfileService {
       case Role.PARENT:
         return this.prisma.user.findUnique({
           where: { id: userId },
-          include: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            createdAt: true,
             parent: {
-              include: {
-                children: true,
+              select: {
+                fullName: true,
+                children: {
+                  select: {
+                    id: true,
+                    fullName: true,
+                    age: true,
+                    user: {
+                      select: {
+                        email: true,
+                        courses: {
+                          select: {
+                            enrolledAt: true,
+                            completedAt: true,
+                            course: {
+                              select: {
+                                id: true,
+                                title: true,
+                                image: {
+                                  select: { url: true },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
               },
             },
           },

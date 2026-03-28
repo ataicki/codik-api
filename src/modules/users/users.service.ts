@@ -1,4 +1,9 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import * as argon2 from 'argon2';
 
 import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
@@ -7,6 +12,7 @@ import {
   USERS_REPOSITORY,
 } from '@modules/users/users.repository.port';
 import { UpdateUserDto } from '@modules/users/dtos/update-user.dto';
+import { Role } from '@generated/enums';
 
 @Injectable()
 export class UsersService {
@@ -51,5 +57,18 @@ export class UsersService {
 
   async updateUser(userId: string, updateUserDto: UpdateUserDto) {
     return this.usersRepository.updateUser(userId, updateUserDto.avatarUrl);
+  }
+
+  async createChild(parentUserId: string, dto: CreateUserDto) {
+    const parent = await this.usersRepository.findParentByUserId(parentUserId);
+    if (!parent)
+      throw new ForbiddenException('Только родители могут создавать детей');
+
+    const existing = await this.usersRepository.findByEmail(dto.email);
+    if (existing) throw new ConflictException('Email уже занят');
+
+    const passwordHash = await argon2.hash(dto.password);
+
+    return this.usersRepository.createChild(passwordHash, dto, parent.id);
   }
 }

@@ -8,13 +8,26 @@ import { ModuleService } from '@modules/education/application/module.service';
 import { StepService } from '@modules/education/application/step.service';
 import { ModuleController } from '@modules/education/presentation/module.controller';
 import { StepController } from '@modules/education/presentation/step.controller';
+import { LessonService } from '@modules/education/application/lesson.service';
+import { LessonController } from '@modules/education/presentation/lesson.controller';
 
 @Module({
   imports: [
     MinioModule.forFeature({ bucketName: 'courses', policy: 'public' }),
     PrismaModule,
   ],
-  controllers: [CourseController, ModuleController, StepController],
-  providers: [CourseService, CourseImageService, ModuleService, StepService],
+  controllers: [
+    CourseController,
+    ModuleController,
+    StepController,
+    LessonController,
+  ],
+  providers: [
+    CourseService,
+    CourseImageService,
+    ModuleService,
+    StepService,
+    LessonService,
+  ],
 })
 export class EducationModule {}
