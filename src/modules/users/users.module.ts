@@ -3,6 +3,7 @@ import { UsersService } from '@modules/users/users.service';
 import { UsersPrismaRepositoryAdapter } from '@modules/users/users.prisma-repository.adapter';
 import { USERS_REPOSITORY } from '@modules/users/users.repository.port';
 import { PrismaModule } from '@/src/infra/prisma/prisma.module';
+import { UsersController } from '@modules/users/users.controller';
 
 @Module({
   imports: [PrismaModule],
@@ -14,5 +15,6 @@ import { PrismaModule } from '@/src/infra/prisma/prisma.module';
     },
   ],
   exports: [UsersService],
+  controllers: [UsersController],
 })
 export class UsersModule {}
