@@ -4,9 +4,12 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from '@modules/app/app.module';
+import { EnvService } from '@/src/infra/env/env.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const envService = app.get(EnvService);
 
   app.use(cookieParser());
 
