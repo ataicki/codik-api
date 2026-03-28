@@ -34,7 +34,7 @@ model User {
   parent        Parent?
   courseCreator CourseCreator?
   courses       CourseEnrollment[]
-  attempts      QuestionAttempt[]
+  attempts      TestAttempt[]
   progress      StepProgress[]
 
   @@map("users")
@@ -157,9 +157,9 @@ model Step {
   id            String         @id @default(uuid())
   order         Int
   type          StepType
-  lessonId      String?        @map("lesson_id")
+  lessonId      String?        @unique @map("lesson_id")
   lesson        Lesson?        @relation(fields: [lessonId], references: [id])
-  testId        String?        @map("test_id")
+  testId        String?        @unique @map("test_id")
   test          Test?          @relation(fields: [testId], references: [id])
   module        Module         @relation(fields: [moduleId], references: [id])
   moduleId      String
@@ -189,7 +189,7 @@ model Lesson {
   title String
 
   content String? @db.Text
-  steps   Step[]
+  step    Step?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -198,11 +198,12 @@ model Lesson {
 }
 
 model Test {
-  id        String        @id @default(uuid())
-  title     String
-  steps     Step[]
-  questions Question[]
-  attempts  TestAttempt[]
+  id           String        @id @default(uuid())
+  title        String
+  step         Step?
+  passingScore Int           @default(80) @map("passing_score")
+  questions    Question[]
+  attempts     TestAttempt[]
 
   @@map("tests")
 }
@@ -230,13 +231,13 @@ model Answer {
 }
 
 model QuestionAttempt {
-  id         String   @id @default(uuid())
-  question   Question @relation(fields: [questionId], references: [id])
-  questionId String   @map("question_id")
-  answer     Answer   @relation(fields: [answerId], references: [id])
-  answerId   String   @map("answer_id")
-  user       User     @relation(fields: [userId], references: [id])
-  userId     String
+  id            String      @id @default(uuid())
+  question      Question    @relation(fields: [questionId], references: [id])
+  questionId    String      @map("question_id")
+  answer        Answer      @relation(fields: [answerId], references: [id])
+  answerId      String      @map("answer_id")
+  testAttempt   TestAttempt @relation(fields: [testAttemptId], references: [id])
+  testAttemptId String
 
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -244,9 +245,16 @@ model QuestionAttempt {
 }
 
 model TestAttempt {
-  id     String @id @default(uuid())
-  test   Test   @relation(fields: [testId], references: [id])
-  testId String
+  id               String            @id @default(uuid())
+  test             Test              @relation(fields: [testId], references: [id])
+  testId           String            @map("test_id")
+  user             User              @relation(fields: [userId], references: [id])
+  userId           String            @map("user_id")
+  passed           Boolean
+  score            Int
+  questionAttempts QuestionAttempt[]
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("test_attempts")
 }

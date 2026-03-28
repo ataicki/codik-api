@@ -91,8 +91,28 @@ export const uploadImageSchema = z.object({
   image: courseImageSchema,
 });
 
+export const creatorCoursesQuerySchema = z.object({
+  status: z.enum(['PENDING_MODERATION', 'PUBLISHED', 'REJECTED']).optional(),
+});
+
+export const enrolledCoursesQuerySchema = z.object({
+  completed: z.coerce.boolean().optional(),
+});
+
+export const enrolledCourseSchema = courseListItemSchema.extend({
+  enrolledAt: z.string(),
+  completedAt: z.string().nullable(),
+});
+
 export class CourseListItemDto extends createZodDto(courseListItemSchema) {}
 export class CourseDetailDto extends createZodDto(courseDetailSchema) {}
 export class EnrollmentDto extends createZodDto(enrollmentSchema) {}
 export class ProgressDto extends createZodDto(progressSchema) {}
 export class UploadImageDto extends createZodDto(uploadImageSchema) {}
+export class CreatorCoursesQueryDto extends createZodDto(
+  creatorCoursesQuerySchema,
+) {}
+export class EnrolledCoursesQueryDto extends createZodDto(
+  enrolledCoursesQuerySchema,
+) {}
+export class EnrolledCourseDto extends createZodDto(enrolledCourseSchema) {}

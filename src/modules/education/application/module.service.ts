@@ -119,7 +119,6 @@ export class ModuleService {
   }
 
   private async checkCourseOwnership(courseId: string, userId: string) {
-    console.log(userId);
     const creator = await this.prisma.courseCreator.findUnique({
       where: { userId },
     });

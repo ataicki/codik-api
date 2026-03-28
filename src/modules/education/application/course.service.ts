@@ -223,4 +223,64 @@ export class CourseService {
       },
     });
   }
+
+  async findMyCoursesAsCreator(
+    userId: string,
+    status?: 'PENDING_MODERATION' | 'PUBLISHED' | 'REJECTED',
+  ) {
+    const creator = await this.prisma.courseCreator.findUnique({
+      where: { userId },
+    });
+
+    if (!creator) throw new ForbiddenException('Нет доступа');
+
+    return this.prisma.course.findMany({
+      where: {
+        courseCreatorId: creator.id,
+        ...(status ? { status } : {}),
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        isAvailable: true,
+        image: { select: { url: true } },
+        courseCreator: { select: { fullName: true } },
+        _count: { select: { modules: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findEnrolledCourses(userId: string, completed?: boolean) {
+    const enrollments = await this.prisma.courseEnrollment.findMany({
+      where: {
+        userId,
+        ...(completed === true ? { completedAt: { not: null } } : {}),
+        ...(completed === false ? { completedAt: null } : {}),
+      },
+      include: {
+        course: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            status: true,
+            isAvailable: true,
+            image: { select: { url: true } },
+            courseCreator: { select: { fullName: true } },
+            _count: { select: { modules: true } },
+          },
+        },
+      },
+      orderBy: { enrolledAt: 'desc' },
+    });
+
+    return enrollments.map((e) => ({
+      ...e.course,
+      enrolledAt: e.enrolledAt,
+      completedAt: e.completedAt,
+    }));
+  }
 }
